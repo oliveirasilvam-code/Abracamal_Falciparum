@@ -12,8 +12,7 @@
 body{background:var(--bg);color:var(--tx);font-family:'Inter',sans-serif;padding:28px;}
 
 /* ── Header ── */
-h1{font-size:2rem;font-weight:800;background:linear-gradient(135deg,#7c6aff,#00c9a7);
-   -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:2px;}
+h1{font-size:2rem;font-weight:800;color:#e8215a;margin-bottom:2px;}
 .sub{color:var(--mu);font-size:.82rem;margin-bottom:20px;}
 .tag{display:inline-block;background:#1a2240;color:#7c6aff;font-size:.72rem;
      font-weight:700;padding:2px 10px;border-radius:20px;margin-left:8px;vertical-align:middle;}
@@ -117,7 +116,37 @@ tr:last-child td{border-bottom:none;}
 <!-- ══════════════════════════════════
      HEADER
 ══════════════════════════════════════ -->
-<h1>🦟 ABRACAMAL</h1>
+<div style="display:flex;align-items:center;gap:14px;margin-bottom:2px;">
+<svg width="52" height="52" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="ball" cx="38%" cy="32%" r="65%">
+      <stop offset="0%" stop-color="#ff6fa0"/>
+      <stop offset="55%" stop-color="#e8215a"/>
+      <stop offset="100%" stop-color="#9e0a34"/>
+    </radialGradient>
+    <radialGradient id="shine" cx="35%" cy="28%" r="50%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- sphere -->
+  <circle cx="50" cy="50" r="47" fill="url(#ball)"/>
+  <ellipse cx="42" cy="30" rx="26" ry="14" fill="url(#shine)"/>
+  <!-- left eye -->
+  <circle cx="26" cy="56" r="12" fill="white"/>
+  <circle cx="26" cy="56" r="8"  fill="#2a3050"/>
+  <circle cx="29" cy="53" r="2.5" fill="white" opacity=".6"/>
+  <!-- center eye -->
+  <circle cx="50" cy="56" r="13" fill="white"/>
+  <circle cx="50" cy="56" r="9"  fill="#2a3050"/>
+  <circle cx="53" cy="53" r="3"  fill="white" opacity=".6"/>
+  <!-- right eye -->
+  <circle cx="74" cy="56" r="11" fill="white"/>
+  <circle cx="74" cy="56" r="7.5" fill="#2a3050"/>
+  <circle cx="77" cy="53" r="2.2" fill="white" opacity=".6"/>
+</svg>
+<h1>ABRACAMAL</h1>
+</div>
 <p class="sub">Projeto Contribuição dos Cofatores para o Risco de Malária · Amazônia Brasileira · REDCap 2026-05</p>
 
 <div class="study-nav">
@@ -160,7 +189,7 @@ tr:last-child td{border-bottom:none;}
       <div class="card"><h3>Espécie no diagnóstico — PCR</h3><canvas id="cEsp"></canvas></div>
       <div class="card"><h3>Sexo</h3><canvas id="cSex2"></canvas></div>
       <div class="card"><h3>Atividade de garimpo (60 dias)</h3><canvas id="cGar2"></canvas></div>
-      <div class="card"><h3>Nº de diagnósticos por participante<br><small style="font-weight:400;color:#7b8bb2">1=somente D0 · 2+=com recaída(s)</small></h3><canvas id="cRec2"></canvas></div>
+      <div class="card"><h3>Nº de diagnósticos por participante<br><small style="font-weight:400;color:#8a5a6a">1=somente D0 · 2+=com recaída(s)</small></h3><canvas id="cRec2"></canvas></div>
       <div class="card wide"><h3>Distribuição etária</h3><canvas id="cAge2" style="max-height:190px"></canvas></div>
       <div class="card wide"><h3 id="hInt">Intervalo entre episódios</h3><canvas id="cInt" style="max-height:190px"></canvas><p class="note" id="nInt"></p></div>
     </div>
@@ -173,7 +202,7 @@ tr:last-child td{border-bottom:none;}
         <p class="note" id="nEp12"></p>
       </div>
       <div class="card wide">
-        <h3>Intervalos entre recaídas consecutivas<br><small style="font-weight:400;color:#7b8bb2">D0→1ª · 1ª→2ª · 2ª→3ª · 3ª→4ª</small></h3>
+        <h3>Intervalos entre recaídas consecutivas<br><small style="font-weight:400;color:#8a5a6a">D0→1ª · 1ª→2ª · 2ª→3ª · 3ª→4ª</small></h3>
         <canvas id="cEpAll" style="max-height:230px"></canvas>
         <p class="note" id="nEpAll"></p>
       </div>
@@ -619,7 +648,7 @@ function initPf(){
     datasets:[
       {label:'Clearance D7',data:[210,34,2],backgroundColor:'#00c9a799',borderColor:'#00c9a7',borderWidth:2,borderRadius:4,borderSkipped:false},
       {label:'Persistente D7',data:[0,0,2],backgroundColor:'#ff4d8d55',borderColor:'#ff4d8d',borderWidth:2,borderRadius:4,borderSkipped:false},
-      {label:'Sem mic D7',data:[208,24,0],backgroundColor:'#7b8bb233',borderColor:'#7b8bb2',borderWidth:1,borderRadius:4,borderSkipped:false},
+      {label:'Sem mic D7',data:[208,24,0],backgroundColor:'#8a5a6a55',borderColor:'#7b8bb2',borderWidth:1,borderRadius:4,borderSkipped:false},
     ]
   },options:{responsive:true,
     plugins:{legend:{position:'top',labels:{color:TX,font:{...FN,size:10},padding:10}}},
