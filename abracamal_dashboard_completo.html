@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ABRACAMAL — Dashboard Completo</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+:root{--bg:#0d0f1a;--card:#151929;--c2:#1e2240;--acc:#7c6aff;--teal:#00c9a7;
+      --ora:#ff6b35;--pnk:#ff4d8d;--tx:#e8eaf6;--mu:#7b8bb2;--bd:#252a4a;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--tx);font-family:'Inter',sans-serif;padding:28px;}
+
+/* ── Header ── */
+h1{font-size:2rem;font-weight:800;background:linear-gradient(135deg,#7c6aff,#00c9a7);
+   -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:2px;}
+.sub{color:var(--mu);font-size:.82rem;margin-bottom:20px;}
+.tag{display:inline-block;background:#1a2240;color:#7c6aff;font-size:.72rem;
+     font-weight:700;padding:2px 10px;border-radius:20px;margin-left:8px;vertical-align:middle;}
+
+/* ── Study nav (top level) ── */
+.study-nav{display:flex;gap:10px;margin-bottom:28px;}
+.snav{padding:11px 28px;border-radius:12px;border:2px solid var(--bd);
+      background:var(--card);color:var(--mu);font-family:'Inter',sans-serif;
+      font-size:.9rem;font-weight:700;cursor:pointer;transition:all .2s;}
+.snav:hover{border-color:var(--acc);color:var(--tx);}
+.snav.active{background:linear-gradient(135deg,#7c6aff22,#00c9a722);
+             border-color:var(--acc);color:var(--tx);}
+.snav-pill{display:inline-block;font-size:.65rem;font-weight:700;padding:2px 8px;
+           border-radius:20px;margin-left:7px;vertical-align:middle;}
+.snav-pf .snav-pill{background:#2a1040;color:#c580ff;}
+.snav-pfpv .snav-pill{background:#0a2a2a;color:#00c9a7;}
+
+/* ── Study sections ── */
+.study{display:none;}
+.study.active{display:block;}
+
+/* ── Inner tabs (PfPv) ── */
+.tabs{display:flex;gap:0;margin-bottom:26px;border-bottom:2px solid var(--bd);}
+.tab{padding:11px 26px;font-family:'Inter',sans-serif;font-size:.88rem;font-weight:600;
+     color:var(--mu);background:none;border:none;cursor:pointer;
+     border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .2s;}
+.tab:hover{color:var(--tx);}
+.tab.active{color:var(--acc);border-bottom-color:var(--acc);}
+.section{display:none;}
+.section.active{display:block;}
+
+/* ── Filter bars ── */
+.filter-bar{display:flex;gap:10px;margin-bottom:22px;flex-wrap:wrap;}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px;align-items:center;}
+.filter-group{display:flex;gap:8px;align-items:center;}
+.filter-label{color:var(--mu);font-size:.78rem;font-weight:600;margin-right:2px;}
+.sep{width:1px;height:30px;background:var(--bd);margin:0 6px;}
+.fb{padding:8px 20px;border-radius:50px;border:2px solid var(--bd);background:var(--card);
+    color:var(--mu);font-family:'Inter',sans-serif;font-size:.82rem;font-weight:600;
+    cursor:pointer;transition:all .2s;}
+.fb:hover{border-color:var(--acc);color:var(--tx);}
+.fb.active{background:var(--acc);border-color:var(--acc);color:#fff;}
+.fb.bv.active{background:#00c9a7;border-color:#00c9a7;color:#111;}
+.fb.pv.active{background:#ff6b35;border-color:#ff6b35;}
+.fb.sim.active{background:#ffb347;border-color:#ffb347;color:#111;}
+.fb.nao.active{background:#60b4ff;border-color:#60b4ff;color:#111;}
+
+/* ── KPIs ── */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:20px;}
+.kpi{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:15px 12px;text-align:center;}
+.kpi .v{font-size:1.75rem;font-weight:800;color:var(--acc);}
+.kpi .vp{font-size:.78rem;color:var(--mu);font-weight:600;}
+.kpi .l{font-size:.68rem;color:var(--mu);margin-top:4px;line-height:1.3;}
+
+/* ── Grid & Cards ── */
+.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:16px;margin-bottom:16px;}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:20px;}
+.card.wide{grid-column:1/-1;}
+.card h3{font-size:.84rem;font-weight:600;color:var(--tx);margin-bottom:14px;
+         border-left:3px solid var(--acc);padding-left:10px;}
+.note{font-size:.7rem;color:var(--mu);margin-top:10px;line-height:1.5;}
+canvas{max-height:260px;}
+
+/* ── Tables ── */
+table{width:100%;border-collapse:collapse;font-size:.81rem;}
+th{background:var(--c2);color:var(--mu);font-weight:600;padding:9px 13px;
+   text-align:left;border-bottom:1px solid var(--bd);}
+td{padding:9px 13px;border-bottom:1px solid var(--bd);}
+tr:last-child td{border-bottom:none;}
+
+/* ── Badges ── */
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:.7rem;font-weight:600;}
+.b-ok{background:#1a2a1a;color:#70d070;}
+.b-warn{background:#2a1a0a;color:#ffb070;}
+.b-err{background:#2a1010;color:#ff7070;}
+.b-pf{background:#2a1010;color:#ff8080;}
+.b-pv{background:#1a2a3a;color:#80c4ff;}
+.b-mix{background:#2a1a3a;color:#c580ff;}
+
+/* ── Section titles ── */
+.section-title{font-size:1rem;font-weight:700;color:var(--acc);margin:28px 0 12px;
+               border-bottom:1px solid var(--bd);padding-bottom:8px;}
+
+/* ── Retention bars ── */
+.pct-hi{color:#00c9a7;font-weight:700;}
+.pct-md{color:#ffb347;font-weight:700;}
+.pct-lo{color:#ff4d8d;font-weight:700;}
+.pbar{height:7px;border-radius:4px;background:var(--acc);opacity:.8;margin-top:5px;min-width:2px;}
+
+/* ── Chips & Alert ── */
+.chip{display:inline-block;background:#1e2240;border:1px solid var(--bd);border-radius:8px;
+      padding:5px 12px;font-size:.75rem;color:var(--mu);margin:3px 3px 0 0;}
+.chip b{color:var(--tx);}
+.alert-box{background:#1e2240;border-left:3px solid var(--ora);border-radius:10px;
+           padding:12px 16px;font-size:.78rem;color:var(--mu);margin-top:12px;line-height:1.6;}
+.alert-box b{color:var(--ora);}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════
+     HEADER
+══════════════════════════════════════ -->
+<h1>🦟 ABRACAMAL</h1>
+<p class="sub">Projeto Contribuição dos Cofatores para o Risco de Malária · Amazônia Brasileira · REDCap 2026-05</p>
+
+<div class="study-nav">
+  <button class="snav snav-pfpv active" onclick="switchStudy('sPfPv',this)">
+    🌐 Estudo PfPv <span class="snav-pill">Recorrências · 1 ano</span>
+  </button>
+  <button class="snav snav-pf" onclick="switchStudy('sPf',this)">
+    🔬 Estudo Pf <span class="snav-pill">Clearance · 42 dias</span>
+  </button>
+</div>
+
+
+<!-- ══════════════════════════════════
+     ESTUDO PfPv
+══════════════════════════════════════ -->
+<div id="sPfPv" class="study active">
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('t02',this)">📊 Perfil &amp; Recorrências</button>
+    <button class="tab"        onclick="switchTab('t03',this)">📅 Seguimento &amp; Retenção</button>
+  </div>
+
+  <!-- Tab 1: Perfil & Recorrências -->
+  <div id="t02" class="section active">
+    <div class="filter-bar">
+      <button class="fb active" onclick="setF2('total',this)">🌐 Total</button>
+      <button class="fb bv"     onclick="setF2('bv',this)">🏥 Boa Vista-RR</button>
+      <button class="fb pv"     onclick="setF2('pv',this)">🏥 Porto Velho-RO</button>
+    </div>
+    <div class="kpi-row">
+      <div class="kpi"><div class="v" id="kN">—</div><div class="l">Participantes únicos</div></div>
+      <div class="kpi"><div class="v" id="kEp2">—</div><div class="l">Episódios</div></div>
+      <div class="kpi"><div class="v" id="kRec">—</div><div class="vp" id="kRP">—</div><div class="l">Com recaída (≥2 diagnósticos)</div></div>
+      <div class="kpi"><div class="v" id="kMI">—</div><div class="l">Mediana D0→1ª recaída (dias)</div></div>
+      <div class="kpi"><div class="v" id="kAG">—</div><div class="l">Média de idade (anos)</div></div>
+    </div>
+
+    <p class="section-title">📊 Perfil Epidemiológico</p>
+    <div class="g">
+      <div class="card"><h3>Espécie no diagnóstico — PCR</h3><canvas id="cEsp"></canvas></div>
+      <div class="card"><h3>Sexo</h3><canvas id="cSex2"></canvas></div>
+      <div class="card"><h3>Atividade de garimpo (60 dias)</h3><canvas id="cGar2"></canvas></div>
+      <div class="card"><h3>Nº de diagnósticos por participante<br><small style="font-weight:400;color:#7b8bb2">1=somente D0 · 2+=com recaída(s)</small></h3><canvas id="cRec2"></canvas></div>
+      <div class="card wide"><h3>Distribuição etária</h3><canvas id="cAge2" style="max-height:190px"></canvas></div>
+      <div class="card wide"><h3 id="hInt">Intervalo entre episódios</h3><canvas id="cInt" style="max-height:190px"></canvas><p class="note" id="nInt"></p></div>
+    </div>
+
+    <p class="section-title">⏱️ Intervalos: D0 → Recaídas</p>
+    <div class="g">
+      <div class="card wide">
+        <h3>D0 → 1ª recaída</h3>
+        <canvas id="cEp12" style="max-height:210px"></canvas>
+        <p class="note" id="nEp12"></p>
+      </div>
+      <div class="card wide">
+        <h3>Intervalos entre recaídas consecutivas<br><small style="font-weight:400;color:#7b8bb2">D0→1ª · 1ª→2ª · 2ª→3ª · 3ª→4ª</small></h3>
+        <canvas id="cEpAll" style="max-height:230px"></canvas>
+        <p class="note" id="nEpAll"></p>
+      </div>
+    </div>
+
+    <p class="section-title">🔬 Concordância entre Testes Diagnósticos</p>
+    <div class="g">
+      <div class="card"><h3>Concordante vs discordante</h3><canvas id="cConc"></canvas></div>
+      <div class="card wide">
+        <h3>Detalhamento por tipo de discordância</h3>
+        <table><thead><tr><th>Resultado</th><th>N</th><th>%</th><th>Tipo</th></tr></thead>
+        <tbody id="tConc"></tbody></table>
+        <p class="note">Testes: Microscopia · Teste Rápido (RDT) · PCR quantitativo</p>
+      </div>
+    </div>
+
+    <p class="section-title">🧫 Espécie por PCR — Tabela</p>
+    <div class="g">
+      <div class="card wide">
+        <table><thead><tr><th>Resultado PCR</th><th>N</th><th>%</th><th>Espécie</th></tr></thead>
+        <tbody id="tEsp"></tbody></table>
+      </div>
+    </div>
+  </div><!-- /t02 -->
+
+  <!-- Tab 2: Seguimento & Retenção -->
+  <div id="t03" class="section">
+    <div class="filters">
+      <span class="filter-label">Região:</span>
+      <div class="filter-group" id="fg-regiao">
+        <button class="fb active" onclick="setR3('total',this)">🌐 Total</button>
+        <button class="fb bv"     onclick="setR3('bv',this)">🏥 Boa Vista-RR</button>
+        <button class="fb pv"     onclick="setR3('pv',this)">🏥 Porto Velho-RO</button>
+      </div>
+      <div class="sep"></div>
+      <span class="filter-label">Garimpo:</span>
+      <div class="filter-group" id="fg-garimpo">
+        <button class="fb active" onclick="setG3('all',this)">Todos</button>
+        <button class="fb sim"    onclick="setG3('sim',this)">⛏️ Com garimpo</button>
+        <button class="fb nao"    onclick="setG3('nao',this)">🚫 Sem garimpo</button>
+      </div>
+    </div>
+    <div class="kpi-row">
+      <div class="kpi"><div class="v" id="kEp3">—</div><div class="l">Episódios recrutados (D0)</div></div>
+      <div class="kpi"><div class="v" id="kD3">—</div><div class="vp" id="kD3p">—</div><div class="l">Compareceram D3</div></div>
+      <div class="kpi"><div class="v" id="kD7">—</div><div class="vp" id="kD7p">—</div><div class="l">Compareceram D7</div></div>
+      <div class="kpi"><div class="v" id="kD28">—</div><div class="vp" id="kD28p">—</div><div class="l">Compareceram D28</div></div>
+      <div class="kpi"><div class="v" id="kD180">—</div><div class="vp" id="kD180p">—</div><div class="l">Compareceram D180</div></div>
+      <div class="kpi"><div class="v" id="kD360">—</div><div class="vp" id="kD360p">—</div><div class="l">Compareceram D360</div></div>
+    </div>
+    <div class="g">
+      <div class="card wide">
+        <h3>Curva de retenção — % comparecimento por visita programada</h3>
+        <canvas id="cRetLine" style="max-height:280px"></canvas>
+        <p class="note" id="nRet"></p>
+      </div>
+      <div class="card wide">
+        <h3>Comparecimento absoluto por visita</h3>
+        <canvas id="cStack" style="max-height:260px"></canvas>
+      </div>
+      <div class="card wide">
+        <h3>Tabela detalhada de comparecimento por visita</h3>
+        <table>
+          <thead><tr><th>Visita</th><th>Esperados</th><th>Compareceram</th><th>Não compareceram</th><th>% Comparecimento</th><th>Retenção</th></tr></thead>
+          <tbody id="tVisits"></tbody>
+        </table>
+        <p class="note">* Esperados = participantes com linha de dado registrada | % sobre esperados</p>
+      </div>
+    </div>
+  </div><!-- /t03 -->
+
+</div><!-- /sPfPv -->
+
+
+<!-- ══════════════════════════════════
+     ESTUDO Pf · CLEARANCE
+══════════════════════════════════════ -->
+<div id="sPf" class="study">
+
+  <div class="kpi-row">
+    <div class="kpi"><div class="v">525</div><div class="l">Participantes (Braço 1)</div></div>
+    <div class="kpi"><div class="v">522</div><div class="vp">99.4%</div><div class="l">Mic+ no D0</div></div>
+    <div class="kpi"><div class="v">458</div><div class="vp">87.8%</div><div class="l">Pf no diagnóstico</div></div>
+    <div class="kpi"><div class="v">3.000</div><div class="vp">IQR 325–10.500</div><div class="l">Parasitemia mediana D0 (p/μL)</div></div>
+    <div class="kpi"><div class="v">76</div><div class="vp">14.5%</div><div class="l">Com recorrência</div></div>
+    <div class="kpi"><div class="v">246</div><div class="vp">99.2%</div><div class="l">Clearance em D7</div></div>
+  </div>
+
+  <p class="section-title">📊 Perfil Epidemiológico</p>
+  <div class="g">
+    <div class="card"><h3>Espécie no diagnóstico (microscopia D0)</h3><canvas id="cEspD0"></canvas><p class="note">N=522 positivos · 3 sem resultado</p></div>
+    <div class="card"><h3>Sexo</h3><canvas id="cSexPf"></canvas><p class="note">N=524 · 1 sem informação</p></div>
+    <div class="card"><h3>Atividade de garimpo</h3><canvas id="cGarPf"></canvas><p class="note">1=Sim · 0=Não · 9=Desconhecido</p></div>
+    <div class="card"><h3>Distribuição etária</h3><canvas id="cAgePf"></canvas><p class="note">N=523 · Mediana: 35 anos · IQR: 27–47</p></div>
+    <div class="card wide"><h3>Parasitemia inicial (D0) — faixas (p/μL)</h3><canvas id="cParaBins" style="max-height:200px"></canvas><p class="note">Mediana: 3.000 p/μL · IQR: 325–10.500 · ≥100.000 p/μL em 29 pacientes (5.6%)</p></div>
+    <div class="card"><h3>Estágio parasitário no D0</h3><canvas id="cStage"></canvas><p class="note">Gametócitos não registrados como tipo isolado · NI=1</p></div>
+  </div>
+
+  <p class="section-title">🔁 Recorrências</p>
+  <div class="g">
+    <div class="card"><h3>Visitas com recorrência por participante</h3><canvas id="cRecN"></canvas><p class="note">Recorrência = microscopia positiva em D7–D42</p></div>
+    <div class="card"><h3>Espécie nas recorrências (D7–D42)</h3><canvas id="cRecEsp"></canvas><p class="note">N=81 recorrências-visita em 76 pacientes · Pv=70 (86.4%) · Pf=11 (13.6%)</p></div>
+    <div class="card wide">
+      <h3>Recorrências por visita e espécie</h3>
+      <canvas id="cRecVisit" style="max-height:240px"></canvas>
+      <div class="alert-box"><b>Interpretação:</b> Recorrências por <em>P. vivax</em> a partir de D14 são compatíveis com <b>recaídas por hipnozoítos</b> activados pela co-infecção Pf+Pv (60 pacientes, 11.5%) ou por Pv subclínico não detectado em D0. Recorrências por Pf são raras (11 visitas) e podem refletir falha terapêutica ou re-infecção.</div>
+    </div>
+  </div>
+
+  <p class="section-title">📅 Seguimento e Retenção</p>
+  <div class="g">
+    <div class="card wide"><h3>Curva de retenção — % comparecimento por visita</h3><canvas id="cRetPf" style="max-height:260px"></canvas><p class="note">Denominador = 525 participantes recrutados · Retenção: 84–92% ao longo de D0–D42</p></div>
+    <div class="card wide">
+      <h3>Tabela de comparecimento</h3>
+      <table><thead><tr><th>Visita</th><th>Esperados</th><th>Compareceram</th><th>Não compareceram</th><th>% Comparecimento</th><th>Retenção (vs D0)</th></tr></thead>
+      <tbody id="tRetPf"></tbody></table>
+    </div>
+  </div>
+
+  <p class="section-title">🧫 Clearance Parasitário</p>
+  <div class="g">
+    <div class="card wide">
+      <h3>Curva de clearance — % microscopia positiva por visita (entre testados)</h3>
+      <canvas id="cClear" style="max-height:280px"></canvas>
+      <p class="note">% entre participantes com resultado de microscopia registrado · Pico em D21 reflete recaídas Pv, não falha de clearance de Pf</p>
+    </div>
+    <div class="card"><h3>Espécie em visitas positivas (D7 em diante)</h3><canvas id="cClearEsp"></canvas><p class="note">D7: 2 Pf (clearance incompleto) · D14–D42: predominância de Pv</p></div>
+    <div class="card"><h3>Clearance de Pf em D7 por espécie D0</h3><canvas id="cClearD7Esp"></canvas><p class="note">N=248 com microscopia em D7 · Taxa global: 99.2%</p></div>
+    <div class="card wide">
+      <h3>Parasitemia nas visitas positivas (p/μL)</h3>
+      <table>
+        <thead><tr><th>Visita</th><th>N pos</th><th>Mediana</th><th>IQR</th><th>Espécie predominante</th><th>Interpretação</th></tr></thead>
+        <tbody>
+          <tr><td><b>D0</b></td><td>521</td><td>3.000</td><td>325–10.500</td><td><span class="badge b-pf">Pf 87.8%</span></td><td>Diagnóstico índice</td></tr>
+          <tr><td><b>D7</b></td><td>2</td><td>758</td><td>386–1.129</td><td><span class="badge b-pf">Pf 100%</span></td><td>Clearance incompleto</td></tr>
+          <tr><td><b>D14</b></td><td>9</td><td>75</td><td>15–200</td><td><span class="badge b-pv">Pv 100%</span></td><td>1ª onda hipnozoítos</td></tr>
+          <tr><td><b>D21</b></td><td>25</td><td>325</td><td>35–3.500</td><td><span class="badge b-pv">Pv 84%</span></td><td>Pico recaídas Pv</td></tr>
+          <tr><td><b>D28</b></td><td>18</td><td>45</td><td>15–1.375</td><td><span class="badge b-pv">Pv 94%</span></td><td>Recaídas Pv persistentes</td></tr>
+          <tr><td><b>D35</b></td><td>14</td><td>1.250</td><td>36–3.875</td><td><span class="badge b-pv">Pv 79%</span></td><td>Recaídas Pv / re-infecção</td></tr>
+          <tr><td><b>D42</b></td><td>14</td><td>1.100</td><td>88–9.125</td><td><span class="badge b-pv">Pv 86%</span></td><td>Recaídas fim seguimento</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card wide">
+      <h3>Resumo do clearance</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:4px;">
+        <div class="chip"><b>246/248 (99.2%)</b> clearance Pf em D7</div>
+        <div class="chip"><b>2/248 (0.8%)</b> Pf persistente em D7</div>
+        <div class="chip"><b>70/81 (86.4%)</b> recorrências são Pv</div>
+        <div class="chip"><b>11/81 (13.6%)</b> recorrências são Pf</div>
+        <div class="chip"><b>60 pacientes (11.5%)</b> co-infecção Pf+Pv no D0</div>
+        <div class="chip"><b>4 pacientes (0.8%)</b> Pv isolado no D0</div>
+      </div>
+      <div class="alert-box" style="margin-top:14px;"><b>Clearance de formas sanguíneas:</b> Altamente efetivo — 99.2% de negativação em D7. Parasitemias positivas a partir de D14 são quase exclusivamente <em>P. vivax</em>, compatíveis com recaídas por hipnozoítos latentes co-transmitidos ou activados. Nenhuma co-infecção Pf+Pv foi detectada como recorrência.</div>
+    </div>
+  </div>
+
+</div><!-- /sPf -->
+
+
+<!-- ══════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════ -->
+<script>
+/* ─── SHARED ─────────────────────────────────────────────────────── */
+const MU='#7b8bb2',TX='#e8eaf6',GR='#252a4a',FN={family:'Inter',size:12};
+Chart.defaults.color=MU; Chart.defaults.font=FN;
+const TICK={color:MU,font:FN}, GRID={color:GR};
+const COLS=['#7c6aff','#ff4d8d','#00c9a7','#ff6b35','#ffcc00','#c580ff','#60b4ff'];
+let CH={};
+
+function destroy(id){if(CH[id]){CH[id].destroy();delete CH[id];}}
+
+function mk(id,type,labels,data,opts={}){
+  destroy(id);
+  const bg=opts.bg||COLS;
+  CH[id]=new Chart(id,{type,data:{labels,datasets:[{
+    data, backgroundColor:Array.isArray(bg)?bg:[bg],
+    borderColor:opts.bc||undefined, borderWidth:opts.bw||undefined,
+    borderRadius:opts.rad!=null?opts.rad:undefined,
+    borderSkipped:opts.bs!=null?opts.bs:undefined,
+    hoverOffset:opts.ho||12,
+  }]},options:{responsive:true,
+    plugins:{legend:opts.leg!=null?opts.leg:{display:false},
+      tooltip:{callbacks:{label:ctx=>{
+        const i=ctx.dataIndex,n=Array.isArray(data)?data[i]:0,p=opts.pcts?opts.pcts[i]:'';
+        return p?` ${n} (${p}%)`:`${n}`;
+      }}}},
+    scales:opts.noScale?undefined:{
+      x:{ticks:TICK,grid:GRID,title:opts.xTitle?{display:true,text:opts.xTitle,color:MU}:undefined},
+      y:{ticks:TICK,grid:GRID}
+    }
+  }});
+}
+
+/* ─── TOP-LEVEL NAVIGATION ───────────────────────────────────────── */
+function switchStudy(id, btn){
+  document.querySelectorAll('.snav').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.study').forEach(s=>s.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+  if(id==='sPf' && !pfInited) initPf();
+  if(id==='sPfPv') renderAll2(curF2);
+}
+
+/* ─── PfPv INNER TABS ────────────────────────────────────────────── */
+function switchTab(id,btn){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#sPfPv .section').forEach(s=>s.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+  if(id==='t03') renderAll3();
+}
+
+/* ─── PfPv DATA ──────────────────────────────────────────────────── */
+const DS2={"total":{"n_unique":1302,"n_episodios":1770,"n_recurr":324,"pct_recurr":24.9,"med_int":73,"mean_age":36.6,"int_n":468,"pcr":{"Positivo Pv":{"n":1180,"pct":90.6},"Positivo Pf+Pv":{"n":40,"pct":3.1},"Sem info":{"n":33,"pct":2.5},"Positivo Pf":{"n":26,"pct":2.0},"Negativo":{"n":23,"pct":1.8}},"sex":{"Masculino":{"n":936,"pct":71.9},"Feminino":{"n":364,"pct":28.0},"Sem info":{"n":2,"pct":0.2}},"garimpo":{"Sim":{"n":658,"pct":50.5},"Não":{"n":637,"pct":48.9},"Desconhecido":{"n":6,"pct":0.5},"Sem info":{"n":1,"pct":0.1}},"age_cnt":[51,388,366,293,150,51,3],"age_pct":[3.9,29.8,28.1,22.5,11.5,3.9,0.2],"int_cnt":[17,143,119,128,54,7],"int_pct":[3.6,30.6,25.4,27.4,11.5,1.5],"ep_lbl":["D0 (sem recaída)","D0+1ª recaída","D0+2 recaídas","D0+3 recaídas","D0+4 recaídas","D0+5 recaídas","D0+6 recaídas"],"ep_cnt":[978,227,65,23,5,2,2],"ep_pct":[75.1,17.4,5.0,1.8,0.4,0.2,0.2],"ep_int":{"2":{"cnt":[2,1,10,102,87,32,88],"n":322,"med":71},"3":{"cnt":[0,1,1,34,19,14,29],"n":98,"med":74},"4":{"cnt":[1,0,0,10,7,6,8],"n":32,"med":77},"5":{"cnt":[0,0,0,1,4,2,3],"n":10,"med":93}},"conc":{"Concordante":{"n":1706,"pct":96.4},"Discordante: Espécie: Mic=Pv RDT=Pf+Pv PCR=Pv":{"n":19,"pct":1.1},"Discordante: Mic+RDT+ / PCR-":{"n":18,"pct":1.0},"Discordante: Mic+PCR+ / RDT-":{"n":13,"pct":0.7},"Discordante: Mic+ / RDT- / PCR-":{"n":12,"pct":0.7},"Discordante: Espécie: Mic=Pv RDT=Pf+Pv PCR=Pf+Pv":{"n":1,"pct":0.1},"Discordante: Mic- / RDT+PCR+":{"n":1,"pct":0.1}},"conc_total":1770},"bv":{"n_unique":889,"n_episodios":1151,"n_recurr":195,"pct_recurr":21.9,"med_int":65,"mean_age":34.6,"int_n":262,"pcr":{"Positivo Pv":{"n":802,"pct":90.2},"Positivo Pf+Pv":{"n":39,"pct":4.4},"Positivo Pf":{"n":26,"pct":2.9},"Sem info":{"n":13,"pct":1.5},"Negativo":{"n":9,"pct":1.0}},"sex":{"Masculino":{"n":629,"pct":70.8},"Feminino":{"n":260,"pct":29.2}},"garimpo":{"Sim":{"n":645,"pct":72.6},"Não":{"n":238,"pct":26.8},"Desconhecido":{"n":5,"pct":0.6},"Sem info":{"n":1,"pct":0.1}},"age_cnt":[44,311,246,192,76,18,2],"age_pct":[4.9,35.0,27.7,21.6,8.5,2.0,0.2],"int_cnt":[12,102,61,60,20,7],"int_pct":[4.6,38.9,23.3,22.9,7.6,2.7],"ep_lbl":["D0 (sem recaída)","D0+1ª recaída","D0+2 recaídas","D0+3 recaídas","D0+4 recaídas","D0+5 recaídas"],"ep_cnt":[694,147,34,10,3,1],"ep_pct":[78.1,16.5,3.8,1.1,0.3,0.1],"ep_int":{"2":{"cnt":[0,0,10,75,48,16,45],"n":194,"med":66},"3":{"cnt":[0,1,1,22,9,3,13],"n":49,"med":62},"4":{"cnt":[0,0,0,7,2,2,3],"n":14,"med":66},"5":{"cnt":[0,0,0,0,1,1,2],"n":4,"med":130}},"conc":{"Concordante":{"n":1151,"pct":100.0}},"conc_total":1151},"pv":{"n_unique":412,"n_episodios":618,"n_recurr":129,"pct_recurr":31.3,"med_int":88,"mean_age":40.8,"int_n":206,"pcr":{"Positivo Pv":{"n":378,"pct":91.7},"Sem info":{"n":20,"pct":4.9},"Negativo":{"n":13,"pct":3.2},"Positivo Pf+Pv":{"n":1,"pct":0.2}},"sex":{"Masculino":{"n":307,"pct":74.5},"Feminino":{"n":103,"pct":25.0},"Sem info":{"n":2,"pct":0.5}},"garimpo":{"Não":{"n":398,"pct":96.6},"Sim":{"n":13,"pct":3.2},"Desconhecido":{"n":1,"pct":0.2}},"age_cnt":[7,77,119,101,74,33,1],"age_pct":[1.7,18.7,28.9,24.5,18.0,8.0,0.2],"int_cnt":[5,41,58,68,34,0],"int_pct":[2.4,19.9,28.2,33.0,16.5,0.0],"ep_lbl":["D0 (sem recaída)","D0+1ª recaída","D0+2 recaídas","D0+3 recaídas","D0+4 recaídas","D0+5 recaídas","D0+6 recaídas"],"ep_cnt":[283,80,31,13,2,1,2],"ep_pct":[68.7,19.4,7.5,3.2,0.5,0.2,0.5],"ep_int":{"2":{"cnt":[2,1,0,27,39,16,43],"n":128,"med":82},"3":{"cnt":[0,0,0,12,10,11,16],"n":49,"med":93},"4":{"cnt":[1,0,0,3,5,4,5],"n":18,"med":97},"5":{"cnt":[0,0,0,1,3,1,1],"n":6,"med":87}},"conc":{"Concordante":{"n":555,"pct":89.8},"Discordante: Espécie: Mic=Pv RDT=Pf+Pv PCR=Pv":{"n":19,"pct":3.1},"Discordante: Mic+RDT+ / PCR-":{"n":17,"pct":2.8},"Discordante: Mic+PCR+ / RDT-":{"n":13,"pct":2.1},"Discordante: Mic+ / RDT- / PCR-":{"n":12,"pct":1.9},"Discordante: Espécie: Mic=Pv RDT=Pf+Pv PCR=Pf+Pv":{"n":1,"pct":0.2},"Discordante: Mic- / RDT+PCR+":{"n":1,"pct":0.2}},"conc_total":618}};
+const AGE_BINS=['10-19','20-29','30-39','40-49','50-59','60-69','70+'];
+const INT_BINS=['≤30','31-60','61-90','91-180','181-365','>365'];
+const EP_BINS=['<5','5-14','15-28','29-60','61-90','91-120','>120'];
+let curF2='total';
+
+function badge(k){
+  if(k.startsWith('Concordante')) return '<span class="badge b-ok">Concordante</span>';
+  if(k.startsWith('Discordante')) return '<span class="badge b-err">Discordante</span>';
+  return '<span class="badge b-warn">—</span>';
+}
+function specBadge(k){
+  if(k&&k.includes('Pv')&&!k.includes('Pf')) return '<span class="badge" style="background:#1a3a5c;color:#60b4ff">Pv</span>';
+  if(k&&k.includes('Pf')&&!k.includes('Pv')) return '<span class="badge" style="background:#3a1a1a;color:#ff7070">Pf</span>';
+  if(k&&k.includes('Pf')&&k.includes('Pv'))  return '<span class="badge" style="background:#2a1a3a;color:#c580ff">Mista</span>';
+  return '<span class="badge" style="background:#1a2a1a;color:#70d070">Neg/SD</span>';
+}
+
+function renderAll2(key){
+  curF2=key;
+  const d=DS2[key]; if(!d) return;
+  document.getElementById('kN').textContent   = d.n_unique.toLocaleString('pt-BR');
+  document.getElementById('kEp2').textContent = d.n_episodios.toLocaleString('pt-BR');
+  document.getElementById('kRec').textContent = d.n_recurr.toLocaleString('pt-BR');
+  document.getElementById('kRP').textContent  = d.pct_recurr+'%';
+  document.getElementById('kMI').textContent  = d.med_int;
+  document.getElementById('kAG').textContent  = d.mean_age;
+
+  const ek=Object.keys(d.pcr).sort((a,b)=>d.pcr[b].n-d.pcr[a].n);
+  destroy('cEsp');
+  CH['cEsp']=new Chart('cEsp',{type:'doughnut',data:{
+    labels:ek.map(k=>`${k} (${d.pcr[k].n}|${d.pcr[k].pct}%)`),
+    datasets:[{data:ek.map(k=>d.pcr[k].n),backgroundColor:COLS,borderWidth:2,borderColor:'#151929',hoverOffset:10}]
+  },options:{responsive:true,plugins:{legend:{position:'right',labels:{color:TX,font:FN,padding:11}}}}});
+  document.getElementById('tEsp').innerHTML=ek.map(k=>
+    `<tr><td>${k}</td><td><b>${d.pcr[k].n}</b></td><td>${d.pcr[k].pct}%</td><td>${specBadge(k)}</td></tr>`).join('');
+
+  const sk=Object.keys(d.sex).sort((a,b)=>d.sex[b].n-d.sex[a].n);
+  destroy('cSex2');
+  CH['cSex2']=new Chart('cSex2',{type:'doughnut',data:{
+    labels:sk.map(k=>`${k} (${d.sex[k].n}|${d.sex[k].pct}%)`),
+    datasets:[{data:sk.map(k=>d.sex[k].n),backgroundColor:['#7c6aff','#ff4d8d','#7b8bb2'],borderWidth:2,borderColor:'#151929'}]
+  },options:{responsive:true,plugins:{legend:{position:'right',labels:{color:TX,font:FN,padding:11}}}}});
+
+  const gk=Object.keys(d.garimpo).sort((a,b)=>d.garimpo[b].n-d.garimpo[a].n);
+  mk('cGar2','bar',gk,gk.map(k=>d.garimpo[k].n),{bg:['#00c9a7','#ff6b35','#7b8bb2','#ffcc00'],rad:8,bs:false,pcts:gk.map(k=>d.garimpo[k].pct)});
+  mk('cRec2','bar',d.ep_lbl,d.ep_cnt,{bg:COLS,rad:8,bs:false,pcts:d.ep_pct});
+  mk('cAge2','bar',AGE_BINS,d.age_cnt,{bg:'#7c6affaa',bc:'#7c6aff',bw:2,rad:6,bs:false,pcts:d.age_pct,xTitle:'Faixa etária (anos)'});
+
+  document.getElementById('hInt').textContent=`Intervalo entre episódios (n=${d.int_n} recorrências)`;
+  document.getElementById('nInt').textContent=`Mediana: ${d.med_int} dias · N recorrências: ${d.int_n}`;
+  mk('cInt','bar',INT_BINS,d.int_cnt,{bg:'#00c9a7aa',bc:'#00c9a7',bw:2,rad:6,bs:false,pcts:d.int_pct,xTitle:'Intervalo (dias)'});
+
+  const ep2=d.ep_int['2'];
+  mk('cEp12','bar',EP_BINS,ep2.cnt,{bg:'#7c6affaa',bc:'#7c6aff',bw:2,rad:6,bs:false,xTitle:'Intervalo (dias)'});
+  document.getElementById('nEp12').textContent=`N=${ep2.n} recorrências · Mediana: ${ep2.med} dias`;
+
+  destroy('cEpAll');
+  CH['cEpAll']=new Chart('cEpAll',{type:'bar',data:{labels:EP_BINS,datasets:
+    ['2','3','4','5'].map((k,i)=>({
+      label:`${ ['D0→1ª','1ª→2ª','2ª→3ª','3ª→4ª'][i]} (n=${d.ep_int[k].n}, med=${d.ep_int[k].med}d)`,
+      data:d.ep_int[k].cnt,
+      backgroundColor:['#7c6aff','#00c9a7','#ff6b35','#ff4d8d'][i]+'99',
+      borderColor:['#7c6aff','#00c9a7','#ff6b35','#ff4d8d'][i],
+      borderWidth:2,borderRadius:4,borderSkipped:false,
+    }))
+  },options:{responsive:true,plugins:{legend:{position:'top',labels:{color:TX,font:FN,padding:12}}},
+    scales:{x:{ticks:TICK,grid:GRID,title:{display:true,text:'Intervalo (dias)',color:MU}},y:{ticks:TICK,grid:GRID}}}});
+  document.getElementById('nEpAll').textContent='Comparação dos intervalos entre episódios consecutivos';
+
+  const ck=Object.keys(d.conc).sort((a,b)=>d.conc[b].n-d.conc[a].n);
+  const concColors=ck.map(k=>k.startsWith('Concordante')?'#00c9a7':'#ff4d8d');
+  destroy('cConc');
+  CH['cConc']=new Chart('cConc',{type:'doughnut',data:{
+    labels:ck.map(k=>`${k.length>40?k.slice(0,38)+'…':k} (${d.conc[k].n}|${d.conc[k].pct}%)`),
+    datasets:[{data:ck.map(k=>d.conc[k].n),backgroundColor:concColors,borderWidth:2,borderColor:'#151929',hoverOffset:8}]
+  },options:{responsive:true,plugins:{legend:{position:'right',labels:{color:TX,font:{...FN,size:10},padding:8}}}}});
+  document.getElementById('tConc').innerHTML=ck.map(k=>
+    `<tr><td>${k}</td><td><b>${d.conc[k].n}</b></td><td>${d.conc[k].pct}%</td><td>${badge(k)}</td></tr>`).join('');
+}
+
+function setF2(key,btn){
+  document.querySelectorAll('#t02 .fb').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAll2(key);
+}
+
+/* ─── PfPv RETENÇÃO ─────────────────────────────────────────────── */
+const DS3={"total":{"all":{"visits":[{"visit":"D0","expected":1770,"attended":1770,"not_attended":0,"pct":100.0},{"visit":"D3","expected":1721,"attended":826,"not_attended":890,"pct":48.0},{"visit":"D7","expected":1721,"attended":1064,"not_attended":654,"pct":61.8},{"visit":"D28","expected":1690,"attended":744,"not_attended":942,"pct":44.0},{"visit":"D42","expected":1671,"attended":703,"not_attended":963,"pct":42.1},{"visit":"D60","expected":1669,"attended":661,"not_attended":1004,"pct":39.6},{"visit":"D120","expected":1640,"attended":553,"not_attended":1083,"pct":33.7},{"visit":"D180","expected":1577,"attended":401,"not_attended":1173,"pct":25.4},{"visit":"D270","expected":1509,"attended":332,"not_attended":1166,"pct":22.0},{"visit":"D360","expected":1458,"attended":298,"not_attended":1153,"pct":20.4}]},"sim":{"visits":[{"visit":"D0","expected":776,"attended":776,"not_attended":0,"pct":100.0},{"visit":"D3","expected":760,"attended":312,"not_attended":448,"pct":41.1},{"visit":"D7","expected":759,"attended":358,"not_attended":400,"pct":47.2},{"visit":"D28","expected":746,"attended":256,"not_attended":488,"pct":34.3},{"visit":"D42","expected":735,"attended":245,"not_attended":488,"pct":33.3},{"visit":"D60","expected":736,"attended":187,"not_attended":548,"pct":25.4},{"visit":"D120","expected":725,"attended":147,"not_attended":575,"pct":20.3},{"visit":"D180","expected":697,"attended":84,"not_attended":612,"pct":12.1},{"visit":"D270","expected":664,"attended":52,"not_attended":604,"pct":7.8},{"visit":"D360","expected":644,"attended":42,"not_attended":600,"pct":6.5}]},"nao":{"visits":[{"visit":"D0","expected":984,"attended":984,"not_attended":0,"pct":100.0},{"visit":"D3","expected":951,"attended":510,"not_attended":436,"pct":53.6},{"visit":"D7","expected":951,"attended":700,"not_attended":250,"pct":73.6},{"visit":"D28","expected":935,"attended":486,"not_attended":447,"pct":52.0},{"visit":"D42","expected":927,"attended":456,"not_attended":468,"pct":49.2},{"visit":"D60","expected":924,"attended":473,"not_attended":448,"pct":51.2},{"visit":"D120","expected":906,"attended":405,"not_attended":500,"pct":44.7},{"visit":"D180","expected":872,"attended":316,"not_attended":554,"pct":36.2},{"visit":"D270","expected":837,"attended":279,"not_attended":555,"pct":33.3},{"visit":"D360","expected":809,"attended":256,"not_attended":548,"pct":31.6}]}},"bv":{"all":{"visits":[{"visit":"D0","expected":1151,"attended":1151,"not_attended":0,"pct":100.0},{"visit":"D3","expected":1109,"attended":422,"not_attended":684,"pct":38.1},{"visit":"D7","expected":1111,"attended":543,"not_attended":566,"pct":48.9},{"visit":"D28","expected":1088,"attended":376,"not_attended":709,"pct":34.6},{"visit":"D42","expected":1077,"attended":370,"not_attended":703,"pct":34.4},{"visit":"D60","expected":1077,"attended":309,"not_attended":766,"pct":28.7},{"visit":"D120","expected":1055,"attended":239,"not_attended":813,"pct":22.7},{"visit":"D180","expected":1002,"attended":128,"not_attended":872,"pct":12.8},{"visit":"D270","expected":942,"attended":81,"not_attended":851,"pct":8.6},{"visit":"D360","expected":900,"attended":69,"not_attended":825,"pct":7.7}]},"sim":{"visits":[{"visit":"D0","expected":761,"attended":761,"not_attended":0,"pct":100.0},{"visit":"D3","expected":745,"attended":302,"not_attended":443,"pct":40.5},{"visit":"D7","expected":744,"attended":347,"not_attended":396,"pct":46.6},{"visit":"D28","expected":731,"attended":251,"not_attended":478,"pct":34.3},{"visit":"D42","expected":720,"attended":241,"not_attended":477,"pct":33.5},{"visit":"D60","expected":722,"attended":185,"not_attended":536,"pct":25.6},{"visit":"D120","expected":711,"attended":144,"not_attended":564,"pct":20.3},{"visit":"D180","expected":683,"attended":80,"not_attended":602,"pct":11.7},{"visit":"D270","expected":650,"attended":48,"not_attended":594,"pct":7.4},{"visit":"D360","expected":630,"attended":38,"not_attended":590,"pct":6.0}]},"nao":{"visits":[{"visit":"D0","expected":381,"attended":381,"not_attended":0,"pct":100.0},{"visit":"D3","expected":355,"attended":117,"not_attended":235,"pct":33.0},{"visit":"D7","expected":358,"attended":191,"not_attended":166,"pct":53.4},{"visit":"D28","expected":349,"attended":123,"not_attended":225,"pct":35.2},{"visit":"D42","expected":349,"attended":127,"not_attended":220,"pct":36.4},{"visit":"D60","expected":347,"attended":123,"not_attended":223,"pct":35.4},{"visit":"D120","expected":336,"attended":94,"not_attended":242,"pct":28.0},{"visit":"D180","expected":312,"attended":47,"not_attended":264,"pct":15.1},{"visit":"D270","expected":285,"attended":32,"not_attended":251,"pct":11.2},{"visit":"D360","expected":266,"attended":31,"not_attended":231,"pct":11.7}]}},"pv":{"all":{"visits":[{"visit":"D0","expected":618,"attended":618,"not_attended":0,"pct":100.0},{"visit":"D3","expected":611,"attended":404,"not_attended":205,"pct":66.1},{"visit":"D7","expected":608,"attended":520,"not_attended":88,"pct":85.5},{"visit":"D28","expected":601,"attended":368,"not_attended":232,"pct":61.2},{"visit":"D42","expected":593,"attended":333,"not_attended":259,"pct":56.2},{"visit":"D60","expected":591,"attended":351,"not_attended":238,"pct":59.4},{"visit":"D120","expected":584,"attended":314,"not_attended":269,"pct":53.8},{"visit":"D180","expected":574,"attended":273,"not_attended":300,"pct":47.6},{"visit":"D270","expected":566,"attended":251,"not_attended":314,"pct":44.3},{"visit":"D360","expected":557,"attended":229,"not_attended":327,"pct":41.1}]},"sim":{"visits":[{"visit":"D0","expected":15,"attended":15,"not_attended":0,"pct":100.0},{"visit":"D3","expected":15,"attended":10,"not_attended":5,"pct":66.7},{"visit":"D7","expected":15,"attended":11,"not_attended":4,"pct":73.3},{"visit":"D28","expected":15,"attended":5,"not_attended":10,"pct":33.3},{"visit":"D42","expected":15,"attended":4,"not_attended":11,"pct":26.7},{"visit":"D60","expected":14,"attended":2,"not_attended":12,"pct":14.3},{"visit":"D120","expected":14,"attended":3,"not_attended":11,"pct":21.4},{"visit":"D180","expected":14,"attended":4,"not_attended":10,"pct":28.6},{"visit":"D270","expected":14,"attended":4,"not_attended":10,"pct":28.6},{"visit":"D360","expected":14,"attended":4,"not_attended":10,"pct":28.6}]},"nao":{"visits":[{"visit":"D0","expected":602,"attended":602,"not_attended":0,"pct":100.0},{"visit":"D3","expected":595,"attended":393,"not_attended":200,"pct":66.1},{"visit":"D7","expected":592,"attended":508,"not_attended":84,"pct":85.8},{"visit":"D28","expected":585,"attended":363,"not_attended":221,"pct":62.1},{"visit":"D42","expected":577,"attended":329,"not_attended":247,"pct":57.0},{"visit":"D60","expected":576,"attended":349,"not_attended":225,"pct":60.6},{"visit":"D120","expected":569,"attended":311,"not_attended":257,"pct":54.7},{"visit":"D180","expected":559,"attended":269,"not_attended":289,"pct":48.1},{"visit":"D270","expected":551,"attended":247,"not_attended":303,"pct":44.8},{"visit":"D360","expected":542,"attended":225,"not_attended":316,"pct":41.5}]}}};
+let curR3='total', curG3='all';
+
+function pctClass(p){return p>=70?'pct-hi':p>=40?'pct-md':'pct-lo';}
+function r100(v){return Math.round(v*1000)/10;}
+
+function renderAll3(){
+  const d=DS3[curR3][curG3], vs=d.visits;
+  const kmap={D0:'kEp3',D3:'kD3',D7:'kD7',D28:'kD28',D180:'kD180',D360:'kD360'};
+  const kpmap={D3:'kD3p',D7:'kD7p',D28:'kD28p',D180:'kD180p',D360:'kD360p'};
+  vs.forEach(v=>{
+    if(kmap[v.visit]) document.getElementById(kmap[v.visit]).textContent =
+      v.visit==='D0'?v.expected.toLocaleString('pt-BR'):v.attended.toLocaleString('pt-BR');
+    if(kpmap[v.visit]) document.getElementById(kpmap[v.visit]).textContent=v.pct+'%';
+  });
+  const labels=vs.map(v=>v.visit), pcts=vs.map(v=>v.pct), att=vs.map(v=>v.attended), noAtt=vs.map(v=>v.not_attended);
+  destroy('cRetLine');
+  CH['cRetLine']=new Chart('cRetLine',{type:'line',data:{labels,datasets:[{
+    label:'% Comparecimento',data:pcts,borderColor:'#7c6aff',backgroundColor:'#7c6aff22',
+    borderWidth:3,pointRadius:6,pointBackgroundColor:'#7c6aff',tension:.3,fill:true,
+  }]},options:{responsive:true,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const v=vs[ctx.dataIndex];return ` ${v.pct}% · ${v.attended} de ${v.expected}`;  }}}},
+    scales:{x:{ticks:TICK,grid:GRID},y:{min:0,max:100,ticks:{...TICK,callback:v=>v+'%'},grid:GRID,title:{display:true,text:'% comparecimento',color:MU}}}}});
+  document.getElementById('nRet').textContent=`D0: ${vs[0].expected} episódios · % sobre esperados por visita`;
+  destroy('cStack');
+  CH['cStack']=new Chart('cStack',{type:'bar',data:{labels,datasets:[
+    {label:'Compareceu',data:att,backgroundColor:'#00c9a7cc',borderColor:'#00c9a7',borderWidth:1,borderRadius:4,borderSkipped:false},
+    {label:'Não compareceu',data:noAtt,backgroundColor:'#ff4d8d55',borderColor:'#ff4d8d',borderWidth:1,borderRadius:4,borderSkipped:false},
+  ]},options:{responsive:true,
+    plugins:{legend:{position:'top',labels:{color:TX,font:FN,padding:14}}},
+    scales:{x:{stacked:true,ticks:TICK,grid:GRID},y:{stacked:true,ticks:TICK,grid:GRID,title:{display:true,text:'N participantes',color:MU}}}}});
+  const d0=vs[0].expected;
+  document.getElementById('tVisits').innerHTML=vs.map((v,i)=>{
+    const ret=i===0?100:r100(v.attended/d0);
+    return `<tr><td><b>${v.visit}</b></td><td>${v.expected}</td><td>${v.attended}</td><td>${v.not_attended}</td>
+      <td class="${pctClass(v.pct)}">${v.pct}%</td><td class="${pctClass(ret)}">${ret}%</td></tr>`;
+  }).join('');
+}
+
+function setR3(key,btn){curR3=key;document.querySelectorAll('#fg-regiao .fb').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderAll3();}
+function setG3(key,btn){curG3=key;document.querySelectorAll('#fg-garimpo .fb').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderAll3();}
+
+/* ─── ESTUDO Pf (lazy init) ─────────────────────────────────────── */
+let pfInited=false;
+
+function initPf(){
+  pfInited=true;
+
+  /* Espécie D0 */
+  CH['cEspD0']=new Chart('cEspD0',{type:'doughnut',data:{
+    labels:['Pf (458 · 87.8%)','Pf+Pv mista (60 · 11.5%)','Pv (4 · 0.8%)'],
+    datasets:[{data:[458,60,4],backgroundColor:['#ff7070','#c580ff','#60b4ff'],borderWidth:2,borderColor:'#151929',hoverOffset:12}]
+  },options:{responsive:true,plugins:{legend:{position:'right',labels:{color:TX,font:FN,padding:12}}}}});
+
+  /* Sexo */
+  CH['cSexPf']=new Chart('cSexPf',{type:'doughnut',data:{
+    labels:['Masculino (406 · 77.5%)','Feminino (118 · 22.5%)'],
+    datasets:[{data:[406,118],backgroundColor:['#7c6aff','#ff4d8d'],borderWidth:2,borderColor:'#151929',hoverOffset:12}]
+  },options:{responsive:true,plugins:{legend:{position:'right',labels:{color:TX,font:FN,padding:12}}}}});
+
+  /* Garimpo */
+  mk('cGarPf','bar',['Sim (1)','Desconhecido (9)','Não (0)'],[419,80,25],
+    {bg:['#00c9a7','#ffb347','#ff4d8d'],rad:8,bs:false,pcts:['79.8','15.2','4.8']});
+
+  /* Idade */
+  mk('cAgePf','bar',['10-19','20-29','30-39','40-49','50-59','60-69','70+'],[26,179,119,108,75,15,1],
+    {bg:'#7c6affaa',bc:'#7c6aff',bw:2,rad:6,bs:false,pcts:['5.0','34.2','22.8','20.6','14.3','2.9','0.2'],xTitle:'Faixa etária (anos)'});
+
+  /* Parasitemia bins */
+  mk('cParaBins','bar',['<100','100–999','1.000–9.999','10.000–99.999','≥100.000'],[81,95,211,105,29],
+    {bg:'#00c9a7aa',bc:'#00c9a7',bw:2,rad:6,bs:false,pcts:['15.5','18.2','40.5','20.2','5.6'],xTitle:'Parasitemia (p/μL)'});
+
+  /* Estágio */
+  mk('cStage','bar',['Trofozoíto','Anel','Esquizonte','NI'],[416,67,34,1],
+    {bg:['#7c6aff','#00c9a7','#ff6b35','#7b8bb2'],rad:8,bs:false,pcts:['79.5','12.8','6.5','0.2']});
+
+  /* Recorrências N */
+  mk('cRecN','bar',['0 (sem recorrência)','1 visita positiva','2+ visitas positivas'],[449,70,6],
+    {bg:['#00c9a7','#ffb347','#ff4d8d'],rad:8,bs:false,pcts:['85.5','13.3','1.1']});
+
+  /* Espécie recorrências */
+  CH['cRecEsp']=new Chart('cRecEsp',{type:'doughnut',data:{
+    labels:['Pv (70 · 86.4%)','Pf (11 · 13.6%)'],
+    datasets:[{data:[70,11],backgroundColor:['#60b4ff','#ff7070'],borderWidth:2,borderColor:'#151929',hoverOffset:12}]
+  },options:{responsive:true,plugins:{legend:{position:'right',labels:{color:TX,font:FN,padding:12}}}}});
+
+  /* Recorrências por visita e espécie */
+  CH['cRecVisit']=new Chart('cRecVisit',{type:'bar',data:{
+    labels:['D7','D14','D21','D28','D35','D42'],
+    datasets:[
+      {label:'Pf',data:[2,0,3,1,3,2],backgroundColor:'#ff707099',borderColor:'#ff7070',borderWidth:2,borderRadius:4,borderSkipped:false},
+      {label:'Pv',data:[0,9,21,17,11,12],backgroundColor:'#60b4ff99',borderColor:'#60b4ff',borderWidth:2,borderRadius:4,borderSkipped:false},
+    ]
+  },options:{responsive:true,
+    plugins:{legend:{position:'top',labels:{color:TX,font:FN,padding:12}}},
+    scales:{x:{ticks:TICK,grid:GRID,title:{display:true,text:'Visita',color:MU}},y:{ticks:TICK,grid:GRID,title:{display:true,text:'N recorrências',color:MU}}}}});
+
+  /* Retenção Pf */
+  const retN=[525,482,460,453,442,444,453], retPct=[100.0,91.8,87.6,86.3,84.2,84.6,86.3];
+  const retLbl=['D0','D7','D14','D21','D28','D35','D42'];
+  CH['cRetPf']=new Chart('cRetPf',{type:'line',data:{
+    labels:retLbl,datasets:[{
+      label:'% Comparecimento',data:retPct,
+      borderColor:'#7c6aff',backgroundColor:'#7c6aff22',
+      borderWidth:3,pointRadius:6,pointBackgroundColor:'#7c6aff',tension:.3,fill:true,
+    }]
+  },options:{responsive:true,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const i=ctx.dataIndex;return ` ${retPct[i]}% · ${retN[i]} de 525`;  }}}},
+    scales:{x:{ticks:TICK,grid:GRID},y:{min:70,max:102,ticks:{...TICK,callback:v=>v+'%'},grid:GRID,title:{display:true,text:'% comparecimento',color:MU}}}}});
+  const tRp=document.getElementById('tRetPf');
+  retLbl.forEach((v,i)=>{
+    const att=retN[i],not_att=525-att,pct=retPct[i],cls=pct>=90?'pct-hi':pct>=80?'pct-md':'pct-lo';
+    tRp.innerHTML+=`<tr><td><b>${v}</b></td><td>525</td><td>${att}</td><td>${not_att}</td><td class="${cls}">${pct}%</td><td class="${cls}">${pct}%</td></tr>`;
+  });
+
+  /* Clearance curve */
+  const clearDays=['D0','D7','D14','D21','D28','D35','D42'];
+  const clearPos=[522,2,9,25,18,14,14], clearTested=[522,248,191,163,134,110,137], clearPctPos=[100.0,0.8,4.7,15.3,13.4,12.7,10.2];
+  CH['cClear']=new Chart('cClear',{type:'line',data:{
+    labels:clearDays,datasets:[
+      {label:'% Positivos',data:clearPctPos,borderColor:'#ff4d8d',backgroundColor:'#ff4d8d22',borderWidth:3,pointRadius:6,pointBackgroundColor:'#ff4d8d',tension:.3,fill:true,yAxisID:'y'},
+      {label:'N testados',data:clearTested,borderColor:'#7b8bb2',backgroundColor:'transparent',borderWidth:1,borderDash:[4,4],pointRadius:3,tension:.3,fill:false,yAxisID:'y2'},
+    ]
+  },options:{responsive:true,
+    plugins:{legend:{position:'top',labels:{color:TX,font:FN,padding:12}},
+      tooltip:{callbacks:{label:ctx=>{const i=ctx.dataIndex;return ctx.datasetIndex===0?` ${clearPctPos[i]}% · ${clearPos[i]}/${clearTested[i]}`:`N testados: ${clearTested[i]}`;  }}}},
+    scales:{x:{ticks:TICK,grid:GRID},
+      y:{min:0,max:105,ticks:{...TICK,callback:v=>v+'%'},grid:GRID,title:{display:true,text:'% mic positiva',color:MU}},
+      y2:{position:'right',min:0,ticks:TICK,grid:{display:false},title:{display:true,text:'N testados',color:MU}}}}});
+
+  /* Espécie clearance */
+  CH['cClearEsp']=new Chart('cClearEsp',{type:'doughnut',data:{
+    labels:['Pv — hipnozoítos (70 · 86.4%)','Pf — falha/re-infecção (11 · 13.6%)'],
+    datasets:[{data:[70,11],backgroundColor:['#60b4ff','#ff7070'],borderWidth:2,borderColor:'#151929',hoverOffset:12}]
+  },options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:TX,font:{...FN,size:10},padding:10}}}}});
+
+  /* Clearance D7 por espécie */
+  CH['cClearD7Esp']=new Chart('cClearD7Esp',{type:'bar',data:{
+    labels:['Pf (n=418)','Pf+Pv (n=58)','Pv (n=4)'],
+    datasets:[
+      {label:'Clearance D7',data:[210,34,2],backgroundColor:'#00c9a799',borderColor:'#00c9a7',borderWidth:2,borderRadius:4,borderSkipped:false},
+      {label:'Persistente D7',data:[0,0,2],backgroundColor:'#ff4d8d55',borderColor:'#ff4d8d',borderWidth:2,borderRadius:4,borderSkipped:false},
+      {label:'Sem mic D7',data:[208,24,0],backgroundColor:'#7b8bb233',borderColor:'#7b8bb2',borderWidth:1,borderRadius:4,borderSkipped:false},
+    ]
+  },options:{responsive:true,
+    plugins:{legend:{position:'top',labels:{color:TX,font:{...FN,size:10},padding:10}}},
+    scales:{x:{ticks:TICK,grid:GRID,stacked:true},y:{ticks:TICK,grid:GRID,stacked:true,title:{display:true,text:'N participantes',color:MU}}}}});
+}
+
+/* ─── INIT ───────────────────────────────────────────────────────── */
+renderAll2('total');
+</script>
+</body>
+</html>
